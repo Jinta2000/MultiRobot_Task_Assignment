@@ -6,7 +6,7 @@ clc; clear; close all;
 N = 12;            % robots
 m_s = 4;           % surveillance stations
 m_c = 8;           % charging stations
-T = 100;            % time steps
+T = 200;            % time steps
 
 rho = 0.01;
 max_iter = 10000;
@@ -17,7 +17,7 @@ X = zeros(N,m_s+m_c);
 
 % Initialization
 robot_pos = rand(N,2)*20;
-battery = (rand(N,1))*100;
+battery = min((0.5+0.5*rand(N,1))*100,100);
 
 theta = linspace(0,2*pi,m_s+1); theta(end)=[];
 radius = 4;
@@ -59,12 +59,12 @@ for t = 1:T
             dist = norm(robot_pos(i,:) - task_pos(j,:));
             
             if j <= m_s
-                % Surveillance → prefer closer + higher battery
-                C(i,j) = dist^2 - 2*battery(i);
-            else
                 [~, idx] = max(X(:,j));
-                % Charging → prefer low battery + closer
-                C(i,j) = -(battery(idx) - battery(i))^2;
+                % Surveillance -------- prefer closer + higher battery
+                C(i,j) = dist^2 - (battery(idx) - battery(i))^2;
+            else
+                % Charging -------- prefer low battery + closer
+                C(i,j) = -(b_max - battery(i))^2;
             end
         end
     end
@@ -73,7 +73,7 @@ for t = 1:T
     X_relaxed = MURID_TAP(C, Neighbors, rho, max_iter);
     X = zeros(N,m);
 
-    %----------- STEP 1: Assign Surveillance (1 robot per station) ----------
+    %-----------Assign Surveillance (1 robot per station) ----------
     assigned_robots = [];
     
     for j = 1:m_s
@@ -88,7 +88,7 @@ for t = 1:T
         assigned_robots = [assigned_robots idx];
     end
     
-    %----------- STEP 2: Assign Remaining Robots to Charging ----------
+    %-----------Assign Remaining Robots to Charging ----------
     remaining = setdiff(1:N, assigned_robots);
     charging_taken = zeros(m_c,1);
     
@@ -134,9 +134,10 @@ for t = 1:T
     scatter(robot_pos(:,1), robot_pos(:,2), 100, 'b', 'filled');
     
     title(['Persistent Surveillance (MURID) | t = ', num2str(t)]);
-    legend('Surveillance','Charging','Robots');
+    legend('Surveillance','Charging','Robots', 'FontSize', 14, 'FontWeight', 'bold');
     
     xlim([0 20]); ylim([0 20]);
+    set(gca, 'FontSize', 14, 'FontWeight', 'bold');
     grid on;
     
     drawnow;
@@ -147,7 +148,7 @@ end
 figure; hold on;
 
 for i = 1:N
-    plot(1:T, battery_history(i,:), 'LineWidth', 1.5);
+    plot(1:T, battery_history(i,:), 'LineWidth', 1);
 end
 plot(1:T, avg_battery(1,:), 'k','LineWidth', 2);
 plot(1:T, min_battery(1,:), 'b','LineWidth', 2);
@@ -155,9 +156,10 @@ plot(1:T, min_battery(1,:), 'b','LineWidth', 2);
 yline(b_min, '--r', 'Recharge Threshold');
 
 title('Battery Levels of Robots');
-xlabel('Time Step');
-ylabel('Battery Level');
+xlabel('Time Step','FontSize',14, 'FontWeight', 'bold');
+ylabel('Battery Level','FontSize',14, 'FontWeight', 'bold');
 ylim([0 100]);
+set(gca, 'FontSize', 14, 'FontWeight', 'bold');
 grid on;
 
 
