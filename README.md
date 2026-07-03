@@ -102,10 +102,6 @@ The goal is to:
 
 Paper: *Distributed Multirobot Task Assignment via Consensus ADMM, Ola Shorinwa , Ravi N. Haksar , Patrick Washington, IEEE TRANSACTIONS ON ROBOTICS, VOL. 39, NO. 3, JUNE 2023*
 
-## 👤 Author: 
-
-Jinta Gladson
-
 ## ⭐ Notes
 
 * This project is intended for academic and research purposes
